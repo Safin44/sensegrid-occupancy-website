@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Room Occupancy Detection — DS422 | Kaniz Fatema Ema</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<canvas id="bg3d" aria-hidden="true"></canvas>
+
+<header class="topbar">
+  <div class="brand">◉ Smart Room <span>Occupancy Detection</span></div>
+  <nav>
+    <a href="#predict">Live Prediction</a><a href="#performance">Performance</a>
+    <a href="#confusion">Confusion Matrix</a><a href="#dataset">Dataset</a><a href="#pipeline">Pipeline</a>
+  </nav>
+</header>
+
+<!-- 1. HERO -->
+<section id="hero" class="hero">
+  <p class="kicker">DS422 · Machine Learning I · PIRVision Office Dataset</p>
+  <h1>Smart Room<br>Occupancy Detection</h1>
+  <p class="hero-sub">Fifty-five ceiling PIR motion sensors and one temperature reading watch an office
+     room, and a Random Forest model decides — <strong>live</strong> on this page — whether the room is
+     <strong>empty</strong>, holds a <strong>stationary person</strong>, or has <strong>other activity / motion</strong>.</p>
+  <div class="stat-grid">
+    <div class="stat"><span class="stat-num">99.41%</span><span class="stat-label">Random Forest accuracy</span></div>
+    <div class="stat"><span class="stat-num">98.80%</span><span class="stat-label">F1 score (macro)</span></div>
+    <div class="stat"><span class="stat-num">7,651</span><span class="stat-label">observations</span></div>
+    <div class="stat"><span class="stat-num">55</span><span class="stat-label">PIR sensors</span></div>
+  </div>
+  <p class="hero-note">Kaniz Fatema Ema · ID 232-35-189</p>
+</section>
+
+<!-- 2. LIVE PREDICTION -->
+<section id="predict" class="panel">
+  <h2>🎯 Live Prediction — Ask the Model</h2>
+  <p class="lead">The backend loads <code>smart_room_occupancy_model.pkl</code> — the exact pipeline exported
+     from the notebook — and predicts from 60 features: temperature, all 55 PIR readings, and the time
+     features (hour, minute, second, day of week).</p>
+
+  <div class="preset-row">
+    <button type="button" class="btn preset" id="presetVacancy">🟢 Vacancy — real test row</button>
+    <button type="button" class="btn preset" id="presetStationary">🪑 Stationary Human — real test row</button>
+    <button type="button" class="btn preset" id="presetActivity">🏃 Other Activity — real test row</button>
+  </div>
+
+  <div class="controls">
+    <div class="control"><label for="s_Temperature_F">Temperature (°F) <span class="bound-hint">0–89</span></label>
+      <input type="number" id="s_Temperature_F" min="0" max="89" step="0.5"></div>
+    <div class="control"><label for="s_Hour">Hour of day <span class="bound-hint">0–23</span></label>
+      <input type="number" id="s_Hour" min="0" max="23" step="1"></div>
+    <div class="control"><label for="s_Minute">Minute <span class="bound-hint">0–59</span></label>
+      <input type="number" id="s_Minute" min="0" max="59" step="1"></div>
+    <div class="control"><label for="s_PIR_4">PIR 4 (top driver) <span class="bound-hint">2,611–16,383</span></label>
+      <input type="number" id="s_PIR_4" min="2611" max="16383" step="1"></div>
+    <div class="control"><label for="s_PIR_47">PIR 47 <span class="bound-hint">2,606–16,383</span></label>
+      <input type="number" id="s_PIR_47" min="2606" max="16383" step="1"></div>
+    <div class="control"><label for="s_PIR_48">PIR 48 <span class="bound-hint">2,606–16,383</span></label>
+      <input type="number" id="s_PIR_48" min="2606" max="16383" step="1"></div>
+    <div class="control"><label for="s_PIR_40">PIR 40 <span class="bound-hint">2,612–16,383</span></label>
+      <input type="number" id="s_PIR_40" min="2612" max="16383" step="1"></div>
+    <div class="control"><label for="s_PIR_46">PIR 46 <span class="bound-hint">2,606–16,383</span></label>
+      <input type="number" id="s_PIR_46" min="2606" max="16383" step="1"></div>
+    <div class="control"><label for="s_OtherPIR">All other 50 PIR sensors <span class="bound-hint">2,602–111,602,625</span></label>
+      <input type="number" id="s_OtherPIR" min="2602" max="111602625" step="1"></div>
+    <div class="control"><label for="s_DayOfWeek">Day of week</label>
+      <select id="s_DayOfWeek">
+        <option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option>
+        <option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option>
+        <option value="6">Sunday</option>
+      </select></div>
+  </div>
+  <p class="fineprint">All inputs are enforced within the dataset's valid min–max boundaries (values outside the range automatically clamp to the nearest boundary).</p>
+
+  <div class="predict-actions">
+    <button type="button" class="btn primary" id="predictBtn">Predict Occupancy →</button>
+    <span id="backendStatus" class="backend-status">Checking backend…</span>
+  </div>
+  <div id="predictLoading" class="result loading hidden">⏳ Asking the model…</div>
+  <div id="predictError" class="result error hidden" role="alert"></div>
+  <div id="predictResult" class="result hidden">
+    <div class="result-main"><span id="resultLabel" class="result-label">—</span><span id="resultConf" class="result-conf">—</span></div>
+    <div id="probBars" class="prob-bars"></div>
+    <p id="resultReason" class="result-reason"></p>
+  </div>
+</section>
+
+<!-- 3. MODEL PERFORMANCE -->
+<section id="performance" class="panel">
+  <h2>📊 Model Performance</h2>
+  <p class="lead">Four models, same split (80% train / 20% test, stratified, seed 42). Precision, recall and F1
+     are macro averages over the three classes — exactly as computed in the notebook. Random Forest wins.</p>
+  <div class="bars">
+    <div class="bar-row"><span class="bar-name">Random Forest ⭐</span><div class="bar-track"><div class="bar-fill best" style="width:99.41%"></div></div><span class="bar-val">99.41%</span></div>
+    <div class="bar-row"><span class="bar-name">KNN</span><div class="bar-track"><div class="bar-fill" style="width:99.09%"></div></div><span class="bar-val">99.09%</span></div>
+    <div class="bar-row"><span class="bar-name">Decision Tree</span><div class="bar-track"><div class="bar-fill" style="width:98.63%"></div></div><span class="bar-val">98.63%</span></div>
+    <div class="bar-row"><span class="bar-name">SVM</span><div class="bar-track"><div class="bar-fill" style="width:98.30%"></div></div><span class="bar-val">98.30%</span></div>
+  </div>
+  <table class="data-table">
+    <thead><tr><th>Model</th><th>Accuracy</th><th>Precision (macro)</th><th>Recall (macro)</th><th>F1 (macro)</th></tr></thead>
+    <tbody>
+      <tr class="best-row"><td>Random Forest</td><td>99.41%</td><td>98.88%</td><td>98.72%</td><td>98.80%</td></tr>
+      <tr><td>KNN</td><td>99.09%</td><td>97.90%</td><td>98.59%</td><td>98.24%</td></tr>
+      <tr><td>Decision Tree</td><td>98.63%</td><td>97.55%</td><td>97.71%</td><td>97.63%</td></tr>
+      <tr><td>SVM</td><td>98.30%</td><td>94.99%</td><td>99.31%</td><td>97.02%</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 4. CONFUSION MATRIX -->
+<section id="confusion" class="panel">
+  <h2>🔢 Confusion Matrix — Random Forest</h2>
+  <p class="lead">On the 1,531-row test set the best model misclassifies only <strong>9 rows</strong>.
+     The hardest boundary is Vacancy vs Stationary Human — a person sitting almost perfectly still.</p>
+  <div class="cm">
+    <div class="cm-head"></div><div class="cm-head">Predicted<br>Vacancy</div><div class="cm-head">Predicted<br>Stationary</div><div class="cm-head">Predicted<br>Other Activity</div>
+    <div class="cm-head">Actual Vacancy</div><div class="cm-cell good">1247</div><div class="cm-cell">2</div><div class="cm-cell">1</div>
+    <div class="cm-head">Actual Stationary</div><div class="cm-cell">5</div><div class="cm-cell good">161</div><div class="cm-cell">1</div>
+    <div class="cm-head">Actual Other Activity</div><div class="cm-cell">0</div><div class="cm-cell">0</div><div class="cm-cell good">114</div>
+  </div>
+  <h3 class="sub">Per-class scores — Random Forest</h3>
+  <table class="data-table">
+    <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+    <tbody>
+      <tr><td>Vacancy</td><td>1.00</td><td>1.00</td><td>1.00</td><td>1250</td></tr>
+      <tr><td>Stationary Human</td><td>0.99</td><td>0.96</td><td>0.98</td><td>167</td></tr>
+      <tr><td>Other Activity</td><td>0.98</td><td>1.00</td><td>0.99</td><td>114</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 5. FEATURE IMPORTANCE -->
+<section id="importance" class="panel">
+  <h2>🌡 What the Model Listens To</h2>
+  <p class="lead">Random Forest feature importance. One feature towers over the 55 sensors:
+     <strong>Temperature_F (24.2%)</strong> — see the dataset note below for why, it is a quirk of how the
+     data was recorded, and the model leans on it honestly.</p>
+  <div id="importanceChart" class="importance-chart"></div>
+</section>
+
+<!-- 6. DATASET -->
+<section id="dataset" class="panel">
+  <h2>🗂 Dataset &amp; Features</h2>
+  <p class="lead"><strong>PIRVision office dataset</strong> — 7,651 observations from 8 Aug to 8 Oct 2024, each with a
+     timestamp, a temperature reading, and 55 PIR (passive infrared) sensor readings from an office room.</p>
+  <div class="class-dist">
+    <div class="cd-row"><span>Vacancy</span><div class="cd-track"><div class="cd-fill c0" style="width:81.6%"></div></div><span>6,247 · 81.6%</span></div>
+    <div class="cd-row"><span>Stationary Human</span><div class="cd-track"><div class="cd-fill c1" style="width:10.9%"></div></div><span>833 · 10.9%</span></div>
+    <div class="cd-row"><span>Other Activity</span><div class="cd-track"><div class="cd-fill c3" style="width:7.5%"></div></div><span>571 · 7.5%</span></div>
+  </div>
+  <ul class="notes">
+    <li><strong>Engineered features:</strong> Date + Time are converted into Hour, Minute, Second and DayOfWeek, giving 60 model features (55 PIR + temperature + 4 time features).</li>
+    <li><strong>Clean by count:</strong> 0 missing values and 0 duplicate rows — the pipelines still include a median imputer, so a missing reading at prediction time can never crash the model.</li>
+    <li><strong>Honest quirk 1:</strong> every Other Activity row records Temperature_F = 0, while the other classes average about 86–87 °F. That recording artifact is exactly why temperature is the #1 feature.</li>
+    <li><strong>Honest quirk 2:</strong> PIR readings sit near 10,000 at rest, but Other Activity rows average ≈ 68,659 per sensor and single readings spike as high as 111,602,625 — motion floods the sensors.</li>
+    <li><strong>Labels are 0, 1 and 3</strong> — there is no class 2 in this dataset. Class imbalance (81.6% Vacancy) is handled with <code>class_weight='balanced'</code> and a stratified split.</li>
+  </ul>
+</section>
+
+<!-- 7. PIPELINE -->
+<section id="pipeline" class="panel">
+  <h2>⚙️ Pipeline — Notebook to Live Model</h2>
+  <ol class="steps">
+    <li><strong>Load &amp; explore</strong> — 7,651 × 59 table; class distribution, temperature and PIR behaviour checked.</li>
+    <li><strong>Feature engineering</strong> — Date/Time → Hour, Minute, Second, DayOfWeek; 60 numeric features.</li>
+    <li><strong>Split</strong> — 80/20 stratified, random_state 42 → 6,120 train / 1,531 test.</li>
+    <li><strong>Four pipelines</strong> — median imputer first; StandardScaler added for KNN and SVM only (tree models do not need it); balanced class weights.</li>
+    <li><strong>Compare &amp; select</strong> — Random Forest best on accuracy and macro F1.</li>
+    <li><strong>Export &amp; serve</strong> — the whole pipeline (imputer + forest) is saved with joblib as <code>smart_room_occupancy_model.pkl</code> and loaded by this page's FastAPI backend, so the live prediction uses the identical preprocessing.</li>
+  </ol>
+  <p class="fineprint">Reproducibility note: the exported model was re-trained and verified with scikit-learn 1.7.2 —
+     the version that reproduces the notebook's recorded results to the last decimal (99.41% / 98.88% / 98.72% / 98.80%).</p>
+</section>
+
+<footer>
+  <p>DS422 (ML-I) · Smart Room Occupancy Detection · Kaniz Fatema Ema · ID 232-35-189</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="data.js"></script>
+<script src="bg3d.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
