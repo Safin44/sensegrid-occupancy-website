@@ -1,0 +1,203 @@
+{
+ "models": [
+  {
+   "model": "Random Forest",
+   "accuracy": 0.994121,
+   "precision": 0.988832,
+   "recall": 0.987224,
+   "f1": 0.987955
+  },
+  {
+   "model": "KNN",
+   "accuracy": 0.990856,
+   "precision": 0.979027,
+   "recall": 0.985891,
+   "f1": 0.982431
+  },
+  {
+   "model": "Decision Tree",
+   "accuracy": 0.986283,
+   "precision": 0.975506,
+   "recall": 0.977107,
+   "f1": 0.976303
+  },
+  {
+   "model": "SVM",
+   "accuracy": 0.983018,
+   "precision": 0.9499,
+   "recall": 0.993067,
+   "f1": 0.970151
+  }
+ ],
+ "rf_confusion_matrix": [
+  [
+   1247,
+   2,
+   1
+  ],
+  [
+   5,
+   161,
+   1
+  ],
+  [
+   0,
+   0,
+   114
+  ]
+ ],
+ "rf_report": {
+  "Vacancy": {
+   "precision": 0.9960063897763578,
+   "recall": 0.9976,
+   "f1-score": 0.996802557953637,
+   "support": 1250.0
+  },
+  "Stationary Human": {
+   "precision": 0.9877300613496932,
+   "recall": 0.9640718562874252,
+   "f1-score": 0.9757575757575757,
+   "support": 167.0
+  },
+  "Other Activity": {
+   "precision": 0.9827586206896551,
+   "recall": 1.0,
+   "f1-score": 0.991304347826087,
+   "support": 114.0
+  }
+ },
+ "rf_accuracy": 0.9941214892227302,
+ "top_features": [
+  {
+   "feature": "Temperature_F",
+   "importance": 0.242474
+  },
+  {
+   "feature": "PIR_4",
+   "importance": 0.080593
+  },
+  {
+   "feature": "PIR_47",
+   "importance": 0.063948
+  },
+  {
+   "feature": "PIR_48",
+   "importance": 0.051759
+  },
+  {
+   "feature": "PIR_40",
+   "importance": 0.049588
+  },
+  {
+   "feature": "PIR_46",
+   "importance": 0.045377
+  },
+  {
+   "feature": "PIR_41",
+   "importance": 0.033859
+  },
+  {
+   "feature": "PIR_3",
+   "importance": 0.032428
+  },
+  {
+   "feature": "PIR_50",
+   "importance": 0.032232
+  },
+  {
+   "feature": "PIR_49",
+   "importance": 0.0304
+  },
+  {
+   "feature": "PIR_39",
+   "importance": 0.028054
+  },
+  {
+   "feature": "PIR_45",
+   "importance": 0.025884
+  },
+  {
+   "feature": "PIR_14",
+   "importance": 0.023216
+  },
+  {
+   "feature": "PIR_11",
+   "importance": 0.017905
+  },
+  {
+   "feature": "PIR_5",
+   "importance": 0.017594
+  }
+ ],
+ "feature_order": [
+  "Temperature_F",
+  "PIR_1",
+  "PIR_2",
+  "PIR_3",
+  "PIR_4",
+  "PIR_5",
+  "PIR_6",
+  "PIR_7",
+  "PIR_8",
+  "PIR_9",
+  "PIR_10",
+  "PIR_11",
+  "PIR_12",
+  "PIR_13",
+  "PIR_14",
+  "PIR_15",
+  "PIR_16",
+  "PIR_17",
+  "PIR_18",
+  "PIR_19",
+  "PIR_20",
+  "PIR_21",
+  "PIR_22",
+  "PIR_23",
+  "PIR_24",
+  "PIR_25",
+  "PIR_26",
+  "PIR_27",
+  "PIR_28",
+  "PIR_29",
+  "PIR_30",
+  "PIR_31",
+  "PIR_32",
+  "PIR_33",
+  "PIR_34",
+  "PIR_35",
+  "PIR_36",
+  "PIR_37",
+  "PIR_38",
+  "PIR_39",
+  "PIR_40",
+  "PIR_41",
+  "PIR_42",
+  "PIR_43",
+  "PIR_44",
+  "PIR_45",
+  "PIR_46",
+  "PIR_47",
+  "PIR_48",
+  "PIR_49",
+  "PIR_50",
+  "PIR_51",
+  "PIR_52",
+  "PIR_53",
+  "PIR_54",
+  "PIR_55",
+  "Hour",
+  "Minute",
+  "Second",
+  "DayOfWeek"
+ ],
+ "class_distribution": {
+  "0": 6247,
+  "1": 833,
+  "3": 571
+ },
+ "first_test_sample": {
+  "actual": 0,
+  "predicted": 0
+ }
+}
